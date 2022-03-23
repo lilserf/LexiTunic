@@ -19,13 +19,26 @@
             <local:TunicGlyph
                 Bitfield="{Binding Bitfield, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
             />
-            <TextBlock
-                Text="{Binding FoundText}"
+            <TextBlock 
+                x:Name="DefaultOrder"
                 FontSize="40"
                 Grid.Column="1"
                 Grid.Row="0"
                 VerticalAlignment="Center"
-                HorizontalAlignment="Center"/>
+                HorizontalAlignment="Center">
+                <Run Foreground="LawnGreen" Text="{Binding ConsonantPart}"/>
+                <Run Foreground="DarkGreen" Text="{Binding VowelPart}"/>
+            </TextBlock>
+            <TextBlock
+                x:Name="ReversedOrder"
+                FontSize="40"
+                Grid.Column="1"
+                Grid.Row="0"
+                VerticalAlignment="Center"
+                HorizontalAlignment="Center">
+                <Run Foreground="DarkGreen" Text="{Binding VowelPart}"/>
+                <Run Foreground="LawnGreen" Text="{Binding ConsonantPart}"/>
+            </TextBlock>
             <TextBlock 
                 Text="{Binding Bitfield, Mode=OneWay}"
                 Width="150"
@@ -45,7 +58,17 @@
                     Content="Add"
                     Grid.Row="2"
                     Grid.Column="1"/>
-            </Grid>
+        </Grid>
+        <DataTemplate.Triggers>
+            <DataTrigger Binding="{Binding IsReversed}" Value="True">
+                <Setter Property="Visibility" TargetName="ReversedOrder" Value="Visible"/>
+                <Setter Property="Visibility" TargetName="DefaultOrder" Value="Hidden"/>
+            </DataTrigger>
+            <DataTrigger Binding="{Binding IsReversed}" Value="False">
+                <Setter Property="Visibility" TargetName="ReversedOrder" Value="Hidden"/>
+                <Setter Property="Visibility" TargetName="DefaultOrder" Value="Visible"/>
+            </DataTrigger>
+        </DataTemplate.Triggers>
     </DataTemplate>
     
     

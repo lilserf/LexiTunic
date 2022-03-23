@@ -56,7 +56,8 @@ namespace LexiTunic
             RedrawLines();
         }
 
-        Brush m_activeBrush = Brushes.DarkGreen;
+        Brush m_vowelBrush = Brushes.DarkGreen;
+        Brush m_consonantBrush = Brushes.LawnGreen;
         Brush m_inactiveBrush = Brushes.LightGray;
 
         static TunicGlyph()
@@ -79,36 +80,22 @@ namespace LexiTunic
                 var line = new Line();
                 line.StrokeStartLineCap = PenLineCap.Round;
                 line.StrokeEndLineCap = PenLineCap.Round;
-                line.Stroke = m_activeBrush;
+                line.Stroke = (i < 6) ? m_vowelBrush : m_consonantBrush;
                 line.StrokeThickness = THICKNESS;
                 TunicGlyph.SetSegment(line, i);
+                m_canvas.Children.Add(line);
                 m_lines[i] = line;
             }
-            // Overlap very specifically
-            m_canvas.Children.Add(m_lines[8]);
-            m_canvas.Children.Add(m_lines[6]);
-            m_canvas.Children.Add(m_lines[7]);
-            m_canvas.Children.Add(m_lines[9]);
-            m_canvas.Children.Add(m_lines[12]);
-            m_canvas.Children.Add(m_lines[10]);
-            m_canvas.Children.Add(m_lines[11]);
-            m_canvas.Children.Add(m_lines[3]);
-            m_canvas.Children.Add(m_lines[2]);
-            m_canvas.Children.Add(m_lines[1]);
-            m_canvas.Children.Add(m_lines[0]);
-            m_canvas.Children.Add(m_lines[4]);
-            m_canvas.Children.Add(m_lines[5]);
-
 
             m_midline = new Line();
             m_midline.StrokeStartLineCap = PenLineCap.Round;
             m_midline.StrokeEndLineCap = PenLineCap.Round;
-            m_midline.Stroke = m_activeBrush;
+            m_midline.Stroke = m_vowelBrush;
             m_midline.StrokeThickness = THICKNESS;
             m_canvas.Children.Add(m_midline);
 
             m_circle = new Ellipse();
-            m_circle.Stroke = m_activeBrush;
+            m_circle.Stroke = m_vowelBrush;
             m_circle.StrokeThickness = 0.8 * THICKNESS;
             m_circle.Width = 2 * THICKNESS;
             m_circle.Height = 2 * THICKNESS;
@@ -192,15 +179,19 @@ namespace LexiTunic
                 line.Y1 = pts.Item1.Y * scale;
                 line.X2 = pts.Item2.X * scale;
                 line.Y2 = pts.Item2.Y * scale;
+
+                // Make the vowels draw on top
+                int baseZ = i + (i < 6 ? 10 : 0);
+
                 if(IsSegmentActive(i))
                 {
-                    line.Stroke = m_activeBrush;
-                    Canvas.SetZIndex(line, i + 100);
+                    line.Stroke = (i < 6) ? m_vowelBrush : m_consonantBrush;
+                    Canvas.SetZIndex(line, baseZ + 100);
                 }
                 else
                 {
                     line.Stroke = m_inactiveBrush;
-                    Canvas.SetZIndex(line, i);
+                    Canvas.SetZIndex(line, baseZ);
                 }
             }
 
@@ -212,7 +203,7 @@ namespace LexiTunic
 
             if (IsSegmentActive(13))
             {
-                m_circle.Stroke = m_activeBrush;
+                m_circle.Stroke = m_vowelBrush;
                 Canvas.SetZIndex(m_circle, 113);
             }
             else

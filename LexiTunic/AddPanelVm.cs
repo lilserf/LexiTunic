@@ -55,27 +55,38 @@ namespace LexiTunic
                 vowel = GlyphMap[vowelMask];
             }
 
-            if(reversed)
+            if (vowel != null)
             {
-                if (vowel != null)
-                    parts.Add(vowel);
-                if (cons != null)
-                    parts.Add(cons);
+                VowelPart = vowel;
             }
             else
             {
-                if (cons != null)
-                    parts.Add(cons);
-                if (vowel != null)
-                    parts.Add(vowel);
+                VowelPart = "";
             }
+            OnPropertyChanged(nameof(VowelPart));
 
-            FoundText = string.Join(" ", parts.ToArray());
+            if (cons != null)
+            {
+                ConsonantPart = cons;
+            }
+            else
+            {
+                ConsonantPart = "";
+            }
+            OnPropertyChanged(nameof(ConsonantPart));
 
-            PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(nameof(FoundText)));
+            IsReversed = reversed;
+            OnPropertyChanged(nameof(IsReversed));
         }
 
-        public string FoundText { get; set; }
+        private void OnPropertyChanged(string propName)
+        {
+            PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(propName));
+        }
+
+        public bool IsReversed { get; set; }
+        public string VowelPart { get; set; }
+        public string ConsonantPart { get; set; }
         public ICommand AddCommand { get; set; }
         public ICommand ClearCommand { get; set; }
         public string GlyphDesc { get; set; } = "";
