@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
@@ -15,37 +16,23 @@ using System.Windows.Shapes;
 
 namespace LexiTunic
 {
-    /// <summary>
-    /// Follow steps 1a or 1b and then 2 to use this custom control in a XAML file.
-    ///
-    /// Step 1a) Using this custom control in a XAML file that exists in the current project.
-    /// Add this XmlNamespace attribute to the root element of the markup file where it is 
-    /// to be used:
-    ///
-    ///     xmlns:MyNamespace="clr-namespace:LexiTunic"
-    ///
-    ///
-    /// Step 1b) Using this custom control in a XAML file that exists in a different project.
-    /// Add this XmlNamespace attribute to the root element of the markup file where it is 
-    /// to be used:
-    ///
-    ///     xmlns:MyNamespace="clr-namespace:LexiTunic;assembly=LexiTunic"
-    ///
-    /// You will also need to add a project reference from the project where the XAML file lives
-    /// to this project and Rebuild to avoid compilation errors:
-    ///
-    ///     Right click on the target project in the Solution Explorer and
-    ///     "Add Reference"->"Projects"->[Browse to and select this project]
-    ///
-    ///
-    /// Step 2)
-    /// Go ahead and use your control in the XAML file.
-    ///
-    ///     <MyNamespace:TunicGlyph/>
-    ///
-    /// </summary>
-    public class TunicGlyph : FrameworkElement
+    
+    public class TunicGlyph : ContentControl
     {
+        // Attached property
+        public static readonly DependencyProperty SegmentProperty =
+                    DependencyProperty.RegisterAttached("Segment", typeof(int), typeof(TunicGlyph), new PropertyMetadata(0));
+
+        public static int GetSegment(DependencyObject d)
+        {
+            return (int)d.GetValue(SegmentProperty);
+        }
+
+        public static void SetSegment(DependencyObject d, int value)
+        {
+            d.SetValue(SegmentProperty, value);
+        }
+
         public uint Bitfield
         {
             get { return (uint)GetValue(BitfieldProperty); }
@@ -54,14 +41,194 @@ namespace LexiTunic
 
         // Using a DependencyProperty as the backing store for Bitfield.  This enables animation, styling, binding, etc...
         public static readonly DependencyProperty BitfieldProperty =
-            DependencyProperty.Register("Bitfield", typeof(uint), typeof(TunicGlyph), new PropertyMetadata((uint)0));
+            DependencyProperty.Register("Bitfield", typeof(uint), typeof(TunicGlyph), new PropertyMetadata((uint)0, OnBitfieldChangedStatic));
 
+        private static void OnBitfieldChangedStatic(DependencyObject d, DependencyPropertyChangedEventArgs e)
+        {
+            if(d is TunicGlyph me)
+            {
+                me.OnBitfieldChanged();
+            }
+        }
 
-        Pen m_activePen = new Pen(Brushes.DarkGreen, 10);
+        private void OnBitfieldChanged()
+        {
+            RedrawLines();
+        }
+
+        Brush m_activeBrush = Brushes.DarkGreen;
+        Brush m_inactiveBrush = Brushes.LightGray;
 
         static TunicGlyph()
         {
             DefaultStyleKeyProperty.OverrideMetadata(typeof(TunicGlyph), new FrameworkPropertyMetadata(typeof(TunicGlyph)));
+        }
+
+        private Canvas m_canvas = new Canvas();
+
+        Line[] m_lines = new Line[13];
+        Line m_midline;
+        Ellipse m_circle;
+
+        static double THICKNESS = 20;
+
+        public TunicGlyph()
+        {
+            for(int i=Segments.Count()-1; i >= 0; i--)
+            {
+                var line = new Line();
+                line.StrokeStartLineCap = PenLineCap.Round;
+                line.StrokeEndLineCap = PenLineCap.Round;
+                line.Stroke = m_activeBrush;
+                line.StrokeThickness = THICKNESS;
+                TunicGlyph.SetSegment(line, i);
+                m_lines[i] = line;
+                m_canvas.Children.Add(line);
+            }
+
+            m_midline = new Line();
+            m_midline.StrokeStartLineCap = PenLineCap.Round;
+            m_midline.StrokeEndLineCap = PenLineCap.Round;
+            m_midline.Stroke = m_activeBrush;
+            m_midline.StrokeThickness = THICKNESS;
+            m_canvas.Children.Add(m_midline);
+
+            m_circle = new Ellipse();
+            m_circle.Stroke = m_activeBrush;
+            m_circle.StrokeThickness = 0.8 * THICKNESS;
+            m_circle.Width = 2 * THICKNESS;
+            m_circle.Height = 2 * THICKNESS;
+            TunicGlyph.SetSegment(m_circle, 13);
+            m_canvas.Children.Add(m_circle);
+
+            this.Content = m_canvas;
+
+            SizeChanged += TunicGlyph_SizeChanged;
+            MouseUp += TunicGlyph_MouseUp;
+            MouseDown += TunicGlyph_MouseDown;
+            MouseMove += TunicGlyph_MouseMove;
+            RedrawLines();
+        }
+
+        private void ApplyOpToSegment(object sender, MouseEventArgs e)
+        {
+            Point pt = e.GetPosition((UIElement)sender);
+
+            HitTestResult result = VisualTreeHelper.HitTest(m_canvas, pt);
+
+            if (result != null)
+            {
+                var segHit = result.VisualHit;
+
+                int segment = GetSegment(segHit);
+                if (m_mouseOp)
+                    SetSegment(segment);
+                else
+                    ClearSegment(segment);
+            }
+
+        }
+
+        private void TunicGlyph_MouseMove(object sender, MouseEventArgs e)
+        {
+            if (m_mouseDown)
+            {
+                ApplyOpToSegment(sender, e);
+            }
+        }
+
+        bool m_mouseDown = false;
+        bool m_mouseOp = true;
+
+        private void TunicGlyph_MouseDown(object sender, MouseButtonEventArgs e)
+        {
+            Point pt = e.GetPosition((UIElement)sender);
+
+            HitTestResult result = VisualTreeHelper.HitTest(m_canvas, pt);
+
+            if (result != null)
+            {
+                var segHit = result.VisualHit;
+
+                int segment = GetSegment(segHit);
+                m_mouseDown = true;
+                m_mouseOp = !IsSegmentActive(segment);
+            }
+        }
+
+        private void TunicGlyph_MouseUp(object sender, MouseButtonEventArgs e)
+        {
+            ApplyOpToSegment(sender, e);
+            m_mouseDown = false;
+        }
+
+        private void RedrawLines()
+        {
+            double scale = Math.Min(ActualWidth, ActualHeight);
+
+            for (int i=0; i < m_lines.Length; i++)
+            {
+                var line = m_lines[i];
+                var pts = Segments[i];
+                line.X1 = pts.Item1.X * scale;
+                line.Y1 = pts.Item1.Y * scale;
+                line.X2 = pts.Item2.X * scale;
+                line.Y2 = pts.Item2.Y * scale;
+                if(IsSegmentActive(i))
+                {
+                    line.Stroke = m_activeBrush;
+                }
+                else
+                {
+                    line.Stroke = m_inactiveBrush;
+                }
+            }
+
+            m_midline.X1 = 0 * scale;
+            m_midline.Y1 = G_MIDLINE * scale;
+            m_midline.X2 = 1 * scale;
+            m_midline.Y2 = G_MIDLINE * scale;
+
+            if (IsSegmentActive(13))
+            {
+                m_circle.Stroke = m_activeBrush;
+            }
+            else
+            {
+                m_circle.Stroke = m_inactiveBrush;
+            }
+            
+            Canvas.SetLeft(m_circle, G_CENTER * scale - THICKNESS);
+            Canvas.SetTop(m_circle, G_BOT_CIRCLE * scale - THICKNESS);
+        }
+
+        private void TunicGlyph_SizeChanged(object sender, SizeChangedEventArgs e)
+        {
+            RedrawLines();
+        }
+
+        private bool IsSegmentActive(int seg)
+        {
+            int mask = 1 << seg;
+            return (Bitfield & mask) > 0;          
+        }
+
+        private void ToggleSegment(int seg)
+        {
+            int mask = 1 << seg;
+            Bitfield ^= (uint)mask;
+        }
+
+        private void SetSegment(int seg)
+        {
+            int mask = 1 << seg;
+            Bitfield |= (uint)mask;
+        }
+
+        private void ClearSegment(int seg)
+        {
+            int mask = 1 << seg;
+            Bitfield &= ~(uint)mask;
         }
 
         static double G_TOP = 0.1;
@@ -95,40 +262,5 @@ namespace LexiTunic
             (new Point(G_CENTER, G_BOT_CENTER_MID), new Point(G_RIGHT, G_BOT_MID))
         };
 
-
-        protected void DrawSegment(DrawingContext dc, int seg)
-        {
-            if (seg < Segments.Count())
-            {
-                var pts = Segments[seg];
-                var start = new Point(pts.Item1.X * m_scale, pts.Item1.Y * m_scale);
-                var end = new Point(pts.Item2.X * m_scale, pts.Item2.Y * m_scale);
-                dc.DrawLine(m_activePen, start, end);
-            }
-            else if(seg == 13)
-            {
-                dc.DrawEllipse(null, m_activePen, new Point(G_CENTER * m_scale, G_BOT_CIRCLE * m_scale), 10, 10);
-            }
-        }
-
-        protected void DrawMidline(DrawingContext dc)
-        {
-            var start = new Point(0 * m_scale, G_MIDLINE * m_scale);
-            var end = new Point(1 * m_scale, G_MIDLINE * m_scale);
-            dc.DrawLine(m_activePen, start, end);
-        }
-
-        protected double m_scale;
-
-        protected override void OnRender(DrawingContext dc)
-        {
-            m_scale = Math.Min(ActualWidth, ActualHeight);
-
-            DrawMidline(dc);
-            for(int i = 0; i < 14; i++)
-            {
-                DrawSegment(dc, i);
-            }
-        }
     }
 }

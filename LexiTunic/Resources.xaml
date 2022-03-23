@@ -16,14 +16,16 @@
                 <RowDefinition Height="1*"/>
             </Grid.RowDefinitions>
             <local:TunicGlyph
-                Grid.Row="0"/>
+                Bitfield="{Binding Bitfield, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
+            />
             <TextBox
-            Grid.Row="1">
-                Testing
+                FontSize="20"
+                Grid.Row="1" 
+                Text="{Binding GlyphDesc, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}">
             </TextBox>
-            <Button 
-            Content="Add"
-            Grid.Row="2"/>
+            <Button Command="{Binding AddCommand}"
+                Content="Add"
+                Grid.Row="2"/>
             </Grid>
     </DataTemplate>
     
