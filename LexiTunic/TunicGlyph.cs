@@ -19,7 +19,9 @@ namespace LexiTunic
     
     public class TunicGlyph : ContentControl
     {
-        // Attached property
+        #region Segment attached prop
+        ///////////////////////////////////////////////////////////////////////////////////////////////////////////////
+        // Attached property for tracking what segment our Line and Ellipse children correspond to
         public static readonly DependencyProperty SegmentProperty =
                     DependencyProperty.RegisterAttached("Segment", typeof(int), typeof(TunicGlyph), new PropertyMetadata(-1));
 
@@ -32,7 +34,11 @@ namespace LexiTunic
         {
             d.SetValue(SegmentProperty, value);
         }
+        #endregion
 
+        #region Bitfield Dep Prop
+        ///////////////////////////////////////////////////////////////////////////////////////////////////////////////
+        // Bitfield dependency property
         public uint Bitfield
         {
             get { return (uint)GetValue(BitfieldProperty); }
@@ -55,23 +61,63 @@ namespace LexiTunic
         {
             RedrawLines();
         }
+        #endregion
 
+        // Canvas we'll present
+        private Canvas m_canvas = new Canvas();
+        // Child objects for drawing the glyph
+        private Line[] m_lines = new Line[13];
+        private Line m_midline;
+        private Ellipse m_circle;
+
+        // Brushes to use
         Brush m_vowelBrush = Brushes.DarkGreen;
         Brush m_consonantBrush = Brushes.LawnGreen;
         Brush m_inactiveBrush = Brushes.LightGray;
+
+        // Tracking mouse state
+        bool m_mouseDown = false;
+        bool m_mouseOp = true;
+
+        // Basic numbers for the glyph lines
+        static double THICKNESS = 20;
+
+        static double G_TOP = 0.1;
+        static double G_TOP_MID = 0.25;
+        static double G_TOP_CENTER_MID = 0.4;
+        static double G_MIDLINE = 0.5;
+        static double G_BELOW_MIDLINE = 0.58;
+        static double G_BOT_CENTER_MID = 0.6;
+        static double G_BOT_MID = 0.75;
+        static double G_BOT = 0.9;
+        static double G_BOT_CIRCLE = 0.95;
+
+        static double G_LEFT = 0.15;
+        static double G_CENTER = 0.5;
+        static double G_RIGHT = 0.85;
+
+        // Create the actual segments from those static positions
+        (Point, Point)[] Segments = new[]
+        {
+            (new Point(G_RIGHT, G_TOP_MID), new Point(G_CENTER, G_TOP)),
+            (new Point(G_CENTER, G_TOP), new Point(G_LEFT, G_TOP_MID)),
+            (new Point(G_LEFT, G_TOP_MID), new Point(G_LEFT, G_MIDLINE)),
+            (new Point(G_LEFT, G_BELOW_MIDLINE), new Point(G_LEFT, G_BOT_MID)),
+            (new Point(G_LEFT, G_BOT_MID), new Point(G_CENTER, G_BOT)),
+            (new Point(G_CENTER, G_BOT), new Point(G_RIGHT, G_BOT_MID)),
+            (new Point(G_CENTER, G_TOP_CENTER_MID), new Point(G_RIGHT, G_TOP_MID)),
+            (new Point(G_CENTER, G_TOP_CENTER_MID), new Point(G_CENTER, G_TOP)),
+            (new Point(G_CENTER, G_TOP_CENTER_MID), new Point(G_LEFT, G_TOP_MID)),
+            (new Point(G_CENTER, G_TOP_CENTER_MID), new Point(G_CENTER, G_MIDLINE)),
+            (new Point(G_CENTER, G_BOT_CENTER_MID), new Point(G_LEFT, G_BOT_MID)),
+            (new Point(G_CENTER, G_BOT_CENTER_MID), new Point(G_CENTER, G_BOT)),
+            (new Point(G_CENTER, G_BOT_CENTER_MID), new Point(G_RIGHT, G_BOT_MID))
+        };
 
         static TunicGlyph()
         {
             DefaultStyleKeyProperty.OverrideMetadata(typeof(TunicGlyph), new FrameworkPropertyMetadata(typeof(TunicGlyph)));
         }
-
-        private Canvas m_canvas = new Canvas();
-
-        Line[] m_lines = new Line[13];
-        Line m_midline;
-        Ellipse m_circle;
-
-        static double THICKNESS = 20;
 
         public TunicGlyph()
         {
@@ -111,6 +157,7 @@ namespace LexiTunic
             RedrawLines();
         }
 
+        // Do the current correct thing to whatever segment the mouse is on
         private void ApplyOpToSegment(object sender, MouseEventArgs e)
         {
             Point pt = e.GetPosition((UIElement)sender);
@@ -130,6 +177,7 @@ namespace LexiTunic
 
         }
 
+        // Mouse is moving, check if it's still down and do what should be done
         private void TunicGlyph_MouseMove(object sender, MouseEventArgs e)
         {
             if (System.Windows.Input.Mouse.LeftButton != MouseButtonState.Pressed)
@@ -142,9 +190,7 @@ namespace LexiTunic
 
         }
 
-        bool m_mouseDown = false;
-        bool m_mouseOp = true;
-
+        // Mouse went down, set the correct operation to do to other segments
         private void TunicGlyph_MouseDown(object sender, MouseButtonEventArgs e)
         {
             Point pt = e.GetPosition((UIElement)sender);
@@ -161,18 +207,21 @@ namespace LexiTunic
             }
         }
 
+        // Mouse went up, hit the current segment if there is one
         private void TunicGlyph_MouseUp(object sender, MouseButtonEventArgs e)
         {
             ApplyOpToSegment(sender, e);
             m_mouseDown = false;
         }
 
+        // Called all the time when stuff changes
         private void RedrawLines()
         {
             double scale = Math.Min(ActualWidth, ActualHeight);
 
             for (int i=0; i < m_lines.Length; i++)
             {
+                // Rescale the positions of the lines given our current size
                 var line = m_lines[i];
                 var pts = Segments[i];
                 line.X1 = pts.Item1.X * scale;
@@ -180,9 +229,10 @@ namespace LexiTunic
                 line.X2 = pts.Item2.X * scale;
                 line.Y2 = pts.Item2.Y * scale;
 
-                // Make the vowels draw on top
+                // Make the vowels draw on top of the consonants by default
                 int baseZ = i + (i < 6 ? 10 : 0);
 
+                // Color the segments correctly and draw the active segments on top
                 if(IsSegmentActive(i))
                 {
                     line.Stroke = (i < 6) ? m_vowelBrush : m_consonantBrush;
@@ -195,12 +245,14 @@ namespace LexiTunic
                 }
             }
 
+            // Rescale the grid line and draw it on top
             m_midline.X1 = 0 * scale;
             m_midline.Y1 = G_MIDLINE * scale;
             m_midline.X2 = 1 * scale;
             m_midline.Y2 = G_MIDLINE * scale;
             Canvas.SetZIndex(m_midline, 1000);
 
+            // Scale and color the circle
             if (IsSegmentActive(13))
             {
                 m_circle.Stroke = m_vowelBrush;
@@ -212,15 +264,18 @@ namespace LexiTunic
                 Canvas.SetZIndex(m_circle, 13);
             }
             
+            // Position the circle
             Canvas.SetLeft(m_circle, G_CENTER * scale - THICKNESS);
             Canvas.SetTop(m_circle, G_BOT_CIRCLE * scale - THICKNESS);
         }
 
+        // Control size changed, redraw
         private void TunicGlyph_SizeChanged(object sender, SizeChangedEventArgs e)
         {
             RedrawLines();
         }
 
+        #region Segment bitfield math functions
         private bool IsSegmentActive(int seg)
         {
             if (seg < 0) return false;
@@ -249,37 +304,7 @@ namespace LexiTunic
             int mask = 1 << seg;
             Bitfield &= ~(uint)mask;
         }
-
-        static double G_TOP = 0.1;
-        static double G_TOP_MID = 0.25;
-        static double G_TOP_CENTER_MID = 0.4;
-        static double G_MIDLINE = 0.5;
-        static double G_BELOW_MIDLINE = 0.58;
-        static double G_BOT_CENTER_MID = 0.6;
-        static double G_BOT_MID = 0.75;
-        static double G_BOT = 0.9;
-        static double G_BOT_CIRCLE = 0.95;
-        
-        static double G_LEFT = 0.15;
-        static double G_CENTER = 0.5;
-        static double G_RIGHT = 0.85;
-
-        (Point, Point)[] Segments = new[]
-        {
-            (new Point(G_RIGHT, G_TOP_MID), new Point(G_CENTER, G_TOP)),
-            (new Point(G_CENTER, G_TOP), new Point(G_LEFT, G_TOP_MID)),
-            (new Point(G_LEFT, G_TOP_MID), new Point(G_LEFT, G_MIDLINE)),
-            (new Point(G_LEFT, G_BELOW_MIDLINE), new Point(G_LEFT, G_BOT_MID)),
-            (new Point(G_LEFT, G_BOT_MID), new Point(G_CENTER, G_BOT)),
-            (new Point(G_CENTER, G_BOT), new Point(G_RIGHT, G_BOT_MID)),
-            (new Point(G_CENTER, G_TOP_CENTER_MID), new Point(G_RIGHT, G_TOP_MID)),
-            (new Point(G_CENTER, G_TOP_CENTER_MID), new Point(G_CENTER, G_TOP)),
-            (new Point(G_CENTER, G_TOP_CENTER_MID), new Point(G_LEFT, G_TOP_MID)),
-            (new Point(G_CENTER, G_TOP_CENTER_MID), new Point(G_CENTER, G_MIDLINE)),
-            (new Point(G_CENTER, G_BOT_CENTER_MID), new Point(G_LEFT, G_BOT_MID)),
-            (new Point(G_CENTER, G_BOT_CENTER_MID), new Point(G_CENTER, G_BOT)),
-            (new Point(G_CENTER, G_BOT_CENTER_MID), new Point(G_RIGHT, G_BOT_MID))
-        };
+        #endregion
 
     }
 }
