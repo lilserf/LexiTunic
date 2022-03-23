@@ -39,13 +39,28 @@
                 <Run Foreground="DarkGreen" Text="{Binding VowelPart}"/>
                 <Run Foreground="LawnGreen" Text="{Binding ConsonantPart}"/>
             </TextBlock>
-            <TextBlock 
-                Text="{Binding Bitfield, Mode=OneWay}"
-                FontSize="16" 
-                HorizontalAlignment="Center"
-                VerticalAlignment="Center"
+            <StackPanel 
+                Orientation="Vertical"
                 Grid.Column="0"
-                Grid.Row="1"/>
+                Grid.Row="1">
+                <TextBlock 
+                    Text="{Binding Bitfield, Mode=OneWay}"
+                    FontSize="16" 
+                    HorizontalAlignment="Center"
+                    VerticalAlignment="Center"
+                    Grid.Column="0"
+                    Grid.Row="1"/>
+                <TextBlock
+                    FontSize="10"
+                    TextWrapping="Wrap"
+                    HorizontalAlignment="Center"
+                    TextAlignment="Center">
+                    All glyphs represent <Italic>sounds</Italic>, not English letters.<LineBreak/>
+                    The outer (dark green) ring of lines are used in vowel sounds.<LineBreak/>
+                    The inner (light green) lines are used in consonant sounds.<LineBreak/>
+                    The circle at the bottom changes the order - normally the consonant comes first, unless the circle is active.
+                </TextBlock>
+            </StackPanel>
             <TextBox
                 FontSize="20"
                 Grid.Row="1" 
