@@ -21,7 +21,7 @@ namespace LexiTunic
     {
         // Attached property
         public static readonly DependencyProperty SegmentProperty =
-                    DependencyProperty.RegisterAttached("Segment", typeof(int), typeof(TunicGlyph), new PropertyMetadata(0));
+                    DependencyProperty.RegisterAttached("Segment", typeof(int), typeof(TunicGlyph), new PropertyMetadata(-1));
 
         public static int GetSegment(DependencyObject d)
         {
@@ -149,6 +149,7 @@ namespace LexiTunic
             {
                 ApplyOpToSegment(sender, e);
             }
+
         }
 
         bool m_mouseDown = false;
@@ -223,24 +224,29 @@ namespace LexiTunic
 
         private bool IsSegmentActive(int seg)
         {
+            if (seg < 0) return false;
+
             int mask = 1 << seg;
             return (Bitfield & mask) > 0;          
         }
 
         private void ToggleSegment(int seg)
         {
+            if (seg < 0) return;
             int mask = 1 << seg;
             Bitfield ^= (uint)mask;
         }
 
         private void SetSegment(int seg)
         {
+            if (seg < 0) return;
             int mask = 1 << seg;
             Bitfield |= (uint)mask;
         }
 
         private void ClearSegment(int seg)
         {
+            if (seg < 0) return;
             int mask = 1 << seg;
             Bitfield &= ~(uint)mask;
         }

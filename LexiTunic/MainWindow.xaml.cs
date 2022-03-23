@@ -23,7 +23,7 @@ namespace LexiTunic
 
         public MainWindowVm()
         {
-            using(StreamReader f = new StreamReader("glyphs.txt"))
+            using(StreamReader f = new StreamReader("../../../glyphs.txt"))
             {
                 while(!f.EndOfStream)
                 {
@@ -36,7 +36,7 @@ namespace LexiTunic
 
         internal void OnExit()
         {
-            using(StreamWriter f = new StreamWriter("glyphs.txt"))
+            using(StreamWriter f = new StreamWriter("../../../glyphs.txt"))
             {
                 foreach(var g in AddPanelVm.GlyphMap)
                 {
