@@ -83,8 +83,22 @@ namespace LexiTunic
                 line.StrokeThickness = THICKNESS;
                 TunicGlyph.SetSegment(line, i);
                 m_lines[i] = line;
-                m_canvas.Children.Add(line);
             }
+            // Overlap very specifically
+            m_canvas.Children.Add(m_lines[8]);
+            m_canvas.Children.Add(m_lines[6]);
+            m_canvas.Children.Add(m_lines[7]);
+            m_canvas.Children.Add(m_lines[9]);
+            m_canvas.Children.Add(m_lines[12]);
+            m_canvas.Children.Add(m_lines[10]);
+            m_canvas.Children.Add(m_lines[11]);
+            m_canvas.Children.Add(m_lines[3]);
+            m_canvas.Children.Add(m_lines[2]);
+            m_canvas.Children.Add(m_lines[1]);
+            m_canvas.Children.Add(m_lines[0]);
+            m_canvas.Children.Add(m_lines[4]);
+            m_canvas.Children.Add(m_lines[5]);
+
 
             m_midline = new Line();
             m_midline.StrokeStartLineCap = PenLineCap.Round;
@@ -235,7 +249,7 @@ namespace LexiTunic
         static double G_TOP_MID = 0.25;
         static double G_TOP_CENTER_MID = 0.4;
         static double G_MIDLINE = 0.5;
-        static double G_BELOW_MIDLINE = 0.55;
+        static double G_BELOW_MIDLINE = 0.58;
         static double G_BOT_CENTER_MID = 0.6;
         static double G_BOT_MID = 0.75;
         static double G_BOT = 0.9;
