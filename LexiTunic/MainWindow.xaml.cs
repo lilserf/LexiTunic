@@ -15,6 +15,11 @@ using System.Windows.Shapes;
 
 namespace LexiTunic
 {
+    public class MainWindowVm
+    {
+        public AddPanelVm AddPanelVm { get; set; } = new AddPanelVm();
+    }
+
     /// <summary>
     /// Interaction logic for MainWindow.xaml
     /// </summary>
@@ -22,6 +27,7 @@ namespace LexiTunic
     {
         public MainWindow()
         {
+            DataContext = new MainWindowVm();
             InitializeComponent();
         }
     }

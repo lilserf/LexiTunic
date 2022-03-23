@@ -6,7 +6,16 @@
         xmlns:local="clr-namespace:LexiTunic"
         mc:Ignorable="d"
         Title="MainWindow" Height="450" Width="800">
-    <Grid>
-
+    <Window.Resources>
+        <ResourceDictionary>
+            <ResourceDictionary.MergedDictionaries>
+                <ResourceDictionary Source="Resources.xaml"/>
+            </ResourceDictionary.MergedDictionaries>
+        </ResourceDictionary>
+    </Window.Resources>
+    <Grid 
+        HorizontalAlignment="Stretch"
+        VerticalAlignment="Stretch">
+        <ContentPresenter Content="{Binding AddPanelVm}" />
     </Grid>
 </Window>
