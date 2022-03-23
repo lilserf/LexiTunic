@@ -59,9 +59,13 @@ namespace LexiTunic
             {
                 VowelPart = vowel;
             }
-            else
+            else if(vowelMask == 0)
             {
                 VowelPart = "";
+            }
+            else
+            {
+                VowelPart = "??";
             }
             OnPropertyChanged(nameof(VowelPart));
 
@@ -69,9 +73,13 @@ namespace LexiTunic
             {
                 ConsonantPart = cons;
             }
-            else
+            else if(consMask == 0)
             {
                 ConsonantPart = "";
+            }
+            else
+            {
+                ConsonantPart = "??";
             }
             OnPropertyChanged(nameof(ConsonantPart));
 
