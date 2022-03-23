@@ -145,6 +145,9 @@ namespace LexiTunic
 
         private void TunicGlyph_MouseMove(object sender, MouseEventArgs e)
         {
+            if (System.Windows.Input.Mouse.LeftButton != MouseButtonState.Pressed)
+                m_mouseDown = false;
+
             if (m_mouseDown)
             {
                 ApplyOpToSegment(sender, e);
@@ -192,10 +195,12 @@ namespace LexiTunic
                 if(IsSegmentActive(i))
                 {
                     line.Stroke = m_activeBrush;
+                    Canvas.SetZIndex(line, i + 100);
                 }
                 else
                 {
                     line.Stroke = m_inactiveBrush;
+                    Canvas.SetZIndex(line, i);
                 }
             }
 
@@ -203,14 +208,17 @@ namespace LexiTunic
             m_midline.Y1 = G_MIDLINE * scale;
             m_midline.X2 = 1 * scale;
             m_midline.Y2 = G_MIDLINE * scale;
+            Canvas.SetZIndex(m_midline, 1000);
 
             if (IsSegmentActive(13))
             {
                 m_circle.Stroke = m_activeBrush;
+                Canvas.SetZIndex(m_circle, 113);
             }
             else
             {
                 m_circle.Stroke = m_inactiveBrush;
+                Canvas.SetZIndex(m_circle, 13);
             }
             
             Canvas.SetLeft(m_circle, G_CENTER * scale - THICKNESS);
