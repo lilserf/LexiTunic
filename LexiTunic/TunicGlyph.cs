@@ -73,6 +73,8 @@ namespace LexiTunic
         // Brushes to use
         Brush m_vowelBrush = Brushes.DarkGreen;
         Brush m_consonantBrush = Brushes.LawnGreen;
+        Brush m_derivedVowelBrush = Brushes.DarkOliveGreen;
+        Brush m_derivedConsonentBrush = Brushes.DarkSeaGreen;
         Brush m_inactiveBrush = Brushes.LightGray;
 
         // Tracking mouse state
@@ -126,7 +128,7 @@ namespace LexiTunic
                 var line = new Line();
                 line.StrokeStartLineCap = PenLineCap.Round;
                 line.StrokeEndLineCap = PenLineCap.Round;
-                line.Stroke = (i < 6) ? m_vowelBrush : m_consonantBrush;
+                line.Stroke = GetDefaultStrokeForSegment(i);
                 line.StrokeThickness = THICKNESS;
                 TunicGlyph.SetSegment(line, i);
                 m_canvas.Children.Add(line);
@@ -136,7 +138,7 @@ namespace LexiTunic
             m_midline = new Line();
             m_midline.StrokeStartLineCap = PenLineCap.Round;
             m_midline.StrokeEndLineCap = PenLineCap.Round;
-            m_midline.Stroke = m_vowelBrush;
+            m_midline.Stroke = m_derivedVowelBrush;
             m_midline.StrokeThickness = THICKNESS;
             m_canvas.Children.Add(m_midline);
 
@@ -169,12 +171,76 @@ namespace LexiTunic
                 var segHit = result.VisualHit;
 
                 int segment = GetSegment(segHit);
-                if (m_mouseOp)
-                    SetSegment(segment);
+                if (IsInteractiveeSegment(segment))
+                    if (m_mouseOp)
+                        SetSegment(segment);
+                    else
+                        ClearSegment(segment);
                 else
-                    ClearSegment(segment);
-            }
+                    if (m_mouseOp)
+                        SetDerivedSegment(segment);
+                    else
+                        ClearDerivedSegment(segment);
 
+
+                UpdateDerivedSegments();
+            }
+        }
+
+        private void UpdateDerivedSegments()
+        {
+            // Consonants
+            if (IsSegmentActive(6) || IsSegmentActive(7) || IsSegmentActive(8))
+                SetSegment(9);
+            else
+                ClearSegment(9);
+
+            // Vowels
+            if (IsSegmentActive(2))
+                SetSegment(3);
+            else
+                ClearSegment(3);
+        }
+
+        private void SetDerivedSegment(int segment)
+        {
+            if (segment == 3)
+            {
+                SetSegment(2);
+            }
+            else if (segment == 9)
+            {
+                // No way to know which to do here, just assume middle
+                SetSegment(7);
+            }
+        }
+
+        private void ClearDerivedSegment(int segment)
+        {
+            if (segment == 3)
+            {
+                ClearSegment(2);
+            }
+            else if (segment == 9)
+            {
+                ClearSegment(6);
+                ClearSegment(7);
+                ClearSegment(8);
+            }
+        }
+
+        private static bool IsDerivedSegment(int segment) => !IsInteractiveeSegment(segment);
+
+        private static bool IsInteractiveeSegment(int segment)
+        {
+            return segment != 9 && segment != 3;
+        }
+
+        private Brush GetDefaultStrokeForSegment(int i)
+        {
+            bool isVowel = i < 6;
+            bool isInteractive = IsInteractiveeSegment(i);
+            return isVowel ? isInteractive ? m_vowelBrush : m_derivedVowelBrush : isInteractive ? m_consonantBrush : m_derivedConsonentBrush;
         }
 
         // Mouse is moving, check if it's still down and do what should be done
@@ -231,11 +297,13 @@ namespace LexiTunic
 
                 // Make the vowels draw on top of the consonants by default
                 int baseZ = i + (i < 6 ? 10 : 0);
+                if (IsDerivedSegment(i))
+                    baseZ -= 3;
 
                 // Color the segments correctly and draw the active segments on top
                 if(IsSegmentActive(i))
                 {
-                    line.Stroke = (i < 6) ? m_vowelBrush : m_consonantBrush;
+                    line.Stroke = GetDefaultStrokeForSegment(i);
                     Canvas.SetZIndex(line, baseZ + 100);
                 }
                 else
