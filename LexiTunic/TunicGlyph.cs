@@ -196,7 +196,7 @@ namespace LexiTunic
                 ClearSegment(9);
 
             // Vowels
-            if (IsSegmentActive(2) && IsSegmentActive(4))
+            if (IsSegmentActive(2))
                 SetSegment(3);
             else
                 ClearSegment(3);
@@ -207,7 +207,6 @@ namespace LexiTunic
             if (segment == 3)
             {
                 SetSegment(2);
-                SetSegment(4);
             }
             else if (segment == 9)
             {
@@ -220,10 +219,7 @@ namespace LexiTunic
         {
             if (segment == 3)
             {
-                if (IsSegmentActive(2))
-                    ClearSegment(2);
-                else
-                    ClearSegment(4);
+                ClearSegment(2);
             }
             else if (segment == 9)
             {
