@@ -176,6 +176,13 @@ namespace LexiTunic
                         SetSegment(segment);
                     else
                         ClearSegment(segment);
+                else
+                    if (m_mouseOp)
+                        SetDerivedSegment(segment);
+                    else
+                        ClearDerivedSegment(segment);
+
+
                 UpdateDerivedSegments();
             }
         }
@@ -193,6 +200,37 @@ namespace LexiTunic
                 SetSegment(3);
             else
                 ClearSegment(3);
+        }
+
+        private void SetDerivedSegment(int segment)
+        {
+            if (segment == 3)
+            {
+                SetSegment(2);
+                SetSegment(4);
+            }
+            else if (segment == 9)
+            {
+                // No way to know which to do here, just assume middle
+                SetSegment(7);
+            }
+        }
+
+        private void ClearDerivedSegment(int segment)
+        {
+            if (segment == 3)
+            {
+                if (IsSegmentActive(2))
+                    ClearSegment(2);
+                else
+                    ClearSegment(4);
+            }
+            else if (segment == 9)
+            {
+                ClearSegment(6);
+                ClearSegment(7);
+                ClearSegment(8);
+            }
         }
 
         private static bool IsDerivedSegment(int segment) => !IsInteractiveeSegment(segment);
