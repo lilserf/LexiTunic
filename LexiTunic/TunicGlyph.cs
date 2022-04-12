@@ -190,7 +190,7 @@ namespace LexiTunic
         private void UpdateDerivedSegments()
         {
             // Consonants
-            if (IsSegmentActive(6) || IsSegmentActive(7) || IsSegmentActive(8))
+            if (IsSegmentActive(6) || IsSegmentActive(7))
                 SetSegment(9);
             else
                 ClearSegment(9);
@@ -225,7 +225,6 @@ namespace LexiTunic
             {
                 ClearSegment(6);
                 ClearSegment(7);
-                ClearSegment(8);
             }
         }
 
