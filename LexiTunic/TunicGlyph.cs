@@ -181,12 +181,6 @@ namespace LexiTunic
 
         private void UpdateDerivedSegments()
         {
-            // Consonants
-            if (IsSegmentActive(6) || IsSegmentActive(7))
-                SetSegment(9);
-            else
-                ClearSegment(9);
-
             // Vowels
             if (IsSegmentActive(2))
                 SetSegment(3);
@@ -200,11 +194,6 @@ namespace LexiTunic
             {
                 SetSegment(2);
             }
-            else if (segment == 9)
-            {
-                // No way to know which to do here, just assume middle
-                SetSegment(7);
-            }
         }
 
         private void ClearDerivedSegment(int segment)
@@ -213,18 +202,13 @@ namespace LexiTunic
             {
                 ClearSegment(2);
             }
-            else if (segment == 9)
-            {
-                ClearSegment(6);
-                ClearSegment(7);
-            }
         }
 
         private static bool IsDerivedSegment(int segment) => !IsInteractiveeSegment(segment);
 
         private static bool IsInteractiveeSegment(int segment)
         {
-            return segment != 9 && segment != 3;
+            return segment != 3;
         }
 
         private Brush GetDefaultStrokeForSegment(int i)
