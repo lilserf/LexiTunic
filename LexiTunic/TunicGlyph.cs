@@ -1,22 +1,14 @@
 ﻿using System;
-using System.Collections.Generic;
-using System.Diagnostics;
 using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 using System.Windows;
 using System.Windows.Controls;
-using System.Windows.Data;
-using System.Windows.Documents;
 using System.Windows.Input;
 using System.Windows.Media;
-using System.Windows.Media.Imaging;
-using System.Windows.Navigation;
 using System.Windows.Shapes;
 
 namespace LexiTunic
 {
-    
+
     public class TunicGlyph : ContentControl
     {
         #region Segment attached prop
@@ -189,12 +181,6 @@ namespace LexiTunic
 
         private void UpdateDerivedSegments()
         {
-            // Consonants
-            if (IsSegmentActive(6) || IsSegmentActive(7) || IsSegmentActive(8))
-                SetSegment(9);
-            else
-                ClearSegment(9);
-
             // Vowels
             if (IsSegmentActive(2))
                 SetSegment(3);
@@ -208,11 +194,6 @@ namespace LexiTunic
             {
                 SetSegment(2);
             }
-            else if (segment == 9)
-            {
-                // No way to know which to do here, just assume middle
-                SetSegment(7);
-            }
         }
 
         private void ClearDerivedSegment(int segment)
@@ -221,19 +202,13 @@ namespace LexiTunic
             {
                 ClearSegment(2);
             }
-            else if (segment == 9)
-            {
-                ClearSegment(6);
-                ClearSegment(7);
-                ClearSegment(8);
-            }
         }
 
         private static bool IsDerivedSegment(int segment) => !IsInteractiveeSegment(segment);
 
         private static bool IsInteractiveeSegment(int segment)
         {
-            return segment != 9 && segment != 3;
+            return segment != 3;
         }
 
         private Brush GetDefaultStrokeForSegment(int i)
